@@ -34,13 +34,13 @@ def price_taker():
 df = pd.DataFrame()
 
 # Makes to collect price
-makes = ['Audi', 'BMW', 'Toyota', 'Mercedes']
+makes = ['Audi', 'BMW']
 
 # Web-driver (Chrome)
 from selenium import webdriver
 
 # Path to Add-on (ad-block)
-path_to_adblockplus = r"C:\Users\user\Desktop\extension_3_18_1_0.crx"
+path_to_adblockplus = r"C:\Users\user\Desktop\Internship\Web_Scrapping\extension_3_18_1_0.crx"
 
 # Settings for Chrome
 chrome_options = webdriver.ChromeOptions()
@@ -99,6 +99,21 @@ for i in makes:
     print(df)
 
 driver.quit()
+
+# Convering currencies
+def convert_currency(value):
+    value_str = str(value)
+    if '$' in value_str:
+        return float(value_str.replace('$', '').replace(' ', '')) * 1.7
+    elif '€' in value_str:
+        return float(value_str.replace('€', '').replace(' ', '')) * 1.82
+    elif 'AZN' in value_str:
+        return float(value_str.replace('AZN', '').replace(' ', ''))
+    else:
+        return float(value_str.replace(' ', ''))
+
+for col in df.columns:
+    df[col] = df[col].apply(convert_currency)
 
 # Exporting as XLSX
 df.to_excel('Makes.xlsx')
