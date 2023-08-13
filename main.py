@@ -3,6 +3,8 @@ from selenium.webdriver.common.by import By
 import pandas as pd
 from bs4 import BeautifulSoup
 import time 
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # Timer start
 start = time.time()
@@ -36,6 +38,12 @@ df = pd.DataFrame()
 # Makes to collect price
 makes = ['Audi', 'BMW']
 
+price_from_val = '10000'
+price_to_val = '15000'
+year_from_val = '2000'
+year_to_val = '2015'
+
+
 # Web-driver (Chrome)
 from selenium import webdriver
 
@@ -55,6 +63,8 @@ driver.get("https://ru.turbo.az/")
 
 for i in makes:
     total = []
+#-----------------------------------------------------------------------------------------------
+
     # Clicking on the dropddown of Makes
     dropdown = driver.find_element(By.CLASS_NAME, "tz-dropdown")
     dropdown.click()
@@ -63,9 +73,68 @@ for i in makes:
     choose_make = driver.find_element(By.XPATH, f"//span[text()='{i}']")
     choose_make.click()
 
+#-----------------------------------------------------------------------------------------------
+    # Clicking on the Price from input
+    price_from = driver.find_element(By.ID, "q_price_from")
+
+    # Получить текущее значение элемента ввода
+    current_value = price_from.get_attribute('value')
+
+    # Проверить, есть ли значение в элементе ввода
+    if current_value:
+        print("Элемент ввода содержит значение:", current_value)
+    else:
+        print("Элемент ввода пуст.")
+        price_from.send_keys(price_from_val)
+
+#-----------------------------------------------------------------------------------------------
+    # Clicking on the Price to input
+    price_to = driver.find_element(By.ID, "q_price_to")
+
+    # Получить текущее значение элемента ввода
+    current_value = price_to.get_attribute('value')
+
+    # Проверить, есть ли значение в элементе ввода
+    if current_value:
+        print("Элемент ввода содержит значение:", current_value)
+    else:
+        print("Элемент ввода пуст.")
+        price_to.send_keys(price_to_val)
+
+#-----------------------------------------------------------------------------------------------
+    # # Clicking on the dropddown of Year From
+    # year_from = (By.CSS_SELECTOR, 'div[data-id="q_year_from"]')
+    # wait = WebDriverWait(driver, 3)
+    # element = wait.until(EC.element_to_be_clickable(year_from))
+    # element.click()
+
+    # # Choosing Year from
+    # choose_make = driver.find_element(By.XPATH, f"//span[text()='{year_from_val}']")
+    # choose_make.click()
+
+# #-----------------------------------------------------------------------------------------------
+#     from selenium.webdriver import ActionChains
+#     # Clicking on the dropddown of Year To
+#     year_to = (By.CSS_SELECTOR, 'div[data-id="q_year_to"]')
+#     wait = WebDriverWait(driver, 3)
+#     element = wait.until(EC.element_to_be_clickable(year_to))
+#     element.click()
+
+#     # Choosing Year to
+#     # Finding Year to
+#     choose_year_to = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.XPATH, f"//span[text()='{year_to_val}']")))
+
+#     # Create ActionChains object
+#     actions = ActionChains(driver)
+
+#     # Move to the element and click on it
+#     actions.move_to_element(choose_year_to).click().perform()
+#-----------------------------------------------------------------------------------------------
     # Click on butten 'Показать результаты'
     show_results = driver.find_element(By.XPATH, f'//*[@id="new_q"]/div/div[4]/div[2]/button')
     show_results.click()
+
+#-----------------------------------------------------------------------------------------------
     pages = 0
     while True:
         pages += 1
