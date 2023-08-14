@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import pandas as pd
-from bs4 import BeautifulSoup
+from info_card import price_taker
 import time 
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -9,29 +9,6 @@ from selenium.webdriver.support import expected_conditions as EC
 # Timer start
 start = time.time()
 
-def price_taker():
-    # Reading downloaded html
-    with open(r'C:\Users\user\Desktop\Internship\Web_Scrapping\page.html', 'r', encoding='utf-8') as file:
-        html_content = file.read()
-
-    # Creating object BeautifulSoup
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    # Find element with class "section-title_name" and that contains "ОБЪЯВЛЕНИЯ"
-    section_title = soup.find('p', class_='section-title_name', text='ОБЪЯВЛЕНИЯ')
-
-    # Find all next element of class "products-i"
-    ads_elements = section_title.find_all_next('div', class_='products-i')
-    prices = []
-
-    # combine all prices of one page in one list
-    for ad in ads_elements:
-        price_tag = ad.find('div', class_='product-price')
-        if price_tag:
-            price = price_tag.text.strip()
-            prices.append(price)
-
-    return prices
 
 df = pd.DataFrame()
 
@@ -42,7 +19,7 @@ price_from_val = '10000'
 price_to_val = '15000'
 year_from_val = '2000'
 year_to_val = '2015'
-
+path_to_html = r"C:\Users\user\Desktop\Internship\Web_Scrapping\page.html"
 
 # Web-driver (Chrome)
 from selenium import webdriver
@@ -60,9 +37,15 @@ driver = webdriver.Chrome(options=chrome_options)
 # Opening main page
 driver.get("https://ru.turbo.az/")
 
+car_data = []
 
 for i in makes:
-    total = []
+    # total = []
+    # Получите список всех дескрипторов вкладок
+    all_tabs = driver.window_handles
+
+    # Переключитесь на первую вкладку
+    driver.switch_to.window(all_tabs[0])
 #-----------------------------------------------------------------------------------------------
 
     # Clicking on the dropddown of Makes
@@ -102,34 +85,9 @@ for i in makes:
         price_to.send_keys(price_to_val)
 
 #-----------------------------------------------------------------------------------------------
-    # # Clicking on the dropddown of Year From
-    # year_from = (By.CSS_SELECTOR, 'div[data-id="q_year_from"]')
-    # wait = WebDriverWait(driver, 3)
-    # element = wait.until(EC.element_to_be_clickable(year_from))
-    # element.click()
 
-    # # Choosing Year from
-    # choose_make = driver.find_element(By.XPATH, f"//span[text()='{year_from_val}']")
-    # choose_make.click()
-
-# #-----------------------------------------------------------------------------------------------
-#     from selenium.webdriver import ActionChains
-#     # Clicking on the dropddown of Year To
-#     year_to = (By.CSS_SELECTOR, 'div[data-id="q_year_to"]')
-#     wait = WebDriverWait(driver, 3)
-#     element = wait.until(EC.element_to_be_clickable(year_to))
-#     element.click()
-
-#     # Choosing Year to
-#     # Finding Year to
-#     choose_year_to = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.XPATH, f"//span[text()='{year_to_val}']")))
-
-#     # Create ActionChains object
-#     actions = ActionChains(driver)
-
-#     # Move to the element and click on it
-#     actions.move_to_element(choose_year_to).click().perform()
 #-----------------------------------------------------------------------------------------------
+    time.sleep(5)
     # Click on butten 'Показать результаты'
     show_results = driver.find_element(By.XPATH, f'//*[@id="new_q"]/div/div[4]/div[2]/button')
     show_results.click()
@@ -145,7 +103,12 @@ for i in makes:
             file.write(page_html)
         
         # Add the list of prices of one page to the global list of one make
-        total.extend(price_taker())
+        current_page_data = price_taker(path_to_html)
+        
+        # Add make to each car info
+        for car_info in current_page_data:
+            car_info['Make'] = i
+            car_data.append(car_info)
 
         try:
             # Serch for reference on the next page
@@ -156,18 +119,31 @@ for i in makes:
             next_link.click()
             print('PAGE DONE, GOING TO THE NEXT')
             print(pages)
+            # print(total)
         except:
             print('BREAK')
             print(pages)
+            # print(total)
             break
 
     # Creating final df   
     print('MAKE DONE')
-    temp_df = pd.DataFrame({i: total})
-    df = pd.concat([df, temp_df], axis=1)
-    print(df)
+    # temp_df = pd.DataFrame({i: total})
+    # df = pd.concat([df, temp_df], axis=1)
+    # print(df)
+    
 
 driver.quit()
+
+# Creating DataFrame from the list of car data
+df = pd.DataFrame(car_data)
+df.rename(columns={
+    'name': 'Model',
+    'price': 'Price AZN',
+    'year': 'Year',
+    'liters': 'Volume L',
+    'mileage': 'Mileage'
+}, inplace=True)
 
 # Convering currencies
 def convert_currency(value):
@@ -181,11 +157,11 @@ def convert_currency(value):
     else:
         return float(value_str.replace(' ', ''))
 
-for col in df.columns:
-    df[col] = df[col].apply(convert_currency)
+# Converting currencies for 'Price AZN' column
+df['Price AZN'] = df['Price AZN'].apply(convert_currency)
 
 # Exporting as XLSX
-df.to_excel('Makes.xlsx')
+df.to_excel('Makes.xlsx', index=False)
 print(df)
 
 # Time of script work
