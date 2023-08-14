@@ -12,19 +12,12 @@ start = time.time()
 
 df = pd.DataFrame()
 
-# Makes to collect price
-makes = ['Audi', 'BMW']
-
-price_from_val = '10000'
-price_to_val = '15000'
-year_from_val = '2000'
-year_to_val = '2015'
+# Parameters
+makes = ['Mitsubishi']
+price_from_val = '17000'
+price_to_val = '25000'
+models_to_select = ['Pajero']
 path_to_html = r"C:\Users\user\Desktop\Internship\Web_Scrapping\page.html"
-
-# Web-driver (Chrome)
-from selenium import webdriver
-
-# Path to Add-on (ad-block)
 path_to_adblockplus = r"C:\Users\user\Desktop\Internship\Web_Scrapping\extension_3_18_1_0.crx"
 
 # Settings for Chrome
@@ -55,7 +48,22 @@ for i in makes:
     # Choosing make
     choose_make = driver.find_element(By.XPATH, f"//span[text()='{i}']")
     choose_make.click()
+#-----------------------------------------------------------------------------------------------
 
+    # Откроем выпадающий список с моделями, если он скрыт (может потребоваться адаптация)
+    dropdown_button = driver.find_element(By.CSS_SELECTOR,".tz-dropdown[data-id='q_model']")
+    dropdown_button.click()
+
+    # Найдите все элементы с классом "tz-dropdown__option-label"
+    available_models = driver.find_elements(By.CLASS_NAME,"tz-dropdown__option-label")
+
+    # Соберите все доступные модели в словарь
+    available_models = {model.text.strip(): model for model in available_models}
+
+    # Выберите модели из списка models_to_select
+    for model_name in models_to_select:
+        if model_name in available_models:
+            available_models[model_name].click()
 #-----------------------------------------------------------------------------------------------
     # Clicking on the Price from input
     price_from = driver.find_element(By.ID, "q_price_from")
