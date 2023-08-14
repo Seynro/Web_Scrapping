@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 
 def price_taker(path_to_html):
     car_info_list = []
+    base_url = "https://ru.turbo.az"
+
     # Reading downloaded HTML
     with open(path_to_html, 'r', encoding='utf-8') as file:
         html_content = file.read()
@@ -26,6 +28,10 @@ def price_taker(path_to_html):
         # Extracting price (keeping as a string)
         price_tag = ad.find('div', class_='product-price')
         car_info['price'] = price_tag.text.strip() if price_tag else None
+
+        # Extracting car link and adding base URL
+        link_tag = ad.find('a', class_='products-i__link')
+        car_info['link'] = base_url + link_tag['href'] if link_tag else None
 
         # Extracting attributes (year, liters, mileage)
         attributes_tag = ad.find('div', class_='products-i__attributes')

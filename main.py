@@ -3,7 +3,6 @@ from selenium.webdriver.common.by import By
 import pandas as pd
 from info_card import price_taker
 import time 
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 # Timer start
@@ -133,13 +132,9 @@ for i in makes:
             print(pages)
             # print(total)
             break
-
-    # Creating final df   
+  
     print('MAKE DONE')
-    # temp_df = pd.DataFrame({i: total})
-    # df = pd.concat([df, temp_df], axis=1)
-    # print(df)
-    
+ 
 
 driver.quit()
 
@@ -150,7 +145,8 @@ df.rename(columns={
     'price': 'Price AZN',
     'year': 'Year',
     'liters': 'Volume L',
-    'mileage': 'Mileage'
+    'mileage': 'Mileage',
+    'link': 'Link'
 }, inplace=True)
 
 # Convering currencies
