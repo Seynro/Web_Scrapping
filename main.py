@@ -4,7 +4,7 @@ import pandas as pd
 from info_card import price_taker
 import time 
 from selenium.webdriver.support import expected_conditions as EC
-
+start = time.time()
 # Timer start
 start = time.time()
 
@@ -48,21 +48,24 @@ for i in makes:
     choose_make = driver.find_element(By.XPATH, f"//span[text()='{i}']")
     choose_make.click()
 #-----------------------------------------------------------------------------------------------
+    
+    # 13.469862222671509
 
-    # Откроем выпадающий список с моделями, если он скрыт (может потребоваться адаптация)
-    dropdown_button = driver.find_element(By.CSS_SELECTOR,".tz-dropdown[data-id='q_model']")
-    dropdown_button.click()
-
-    # Найдите все элементы с классом "tz-dropdown__option-label"
-    available_models = driver.find_elements(By.CLASS_NAME,"tz-dropdown__option-label")
+    # Откроем выпадающий список с моделями, если он скрыт
+    dropdown_button = driver.find_element(By.CSS_SELECTOR, ".tz-dropdown[data-id='q_model']")
+    if not dropdown_button.get_attribute('aria-expanded') == 'true':
+        dropdown_button.click()
 
     # Соберите все доступные модели в словарь
-    available_models = {model.text.strip(): model for model in available_models}
+    available_models = {model.text.strip(): model for model in driver.find_elements(By.CLASS_NAME, "tz-dropdown__option-label")}
 
     # Выберите модели из списка models_to_select
     for model_name in models_to_select:
         if model_name in available_models:
             available_models[model_name].click()
+
+    
+    
 #-----------------------------------------------------------------------------------------------
     # Clicking on the Price from input
     price_from = driver.find_element(By.ID, "q_price_from")
@@ -163,6 +166,10 @@ def convert_currency(value):
 
 # Converting currencies for 'Price AZN' column
 df['Price AZN'] = df['Price AZN'].apply(convert_currency)
+
+df['Median Price'] = df['Price AZN'].median()
+df['Median Mileage'] = df['Mileage'].median()
+df['Median Year'] = df['Year'].median()
 
 # Exporting as XLSX
 df.to_excel('Makes.xlsx', index=False)
